@@ -1,0 +1,66 @@
+import java.util.*;
+import java.lang.*;
+
+public class A3Q3 {
+    public static double arduino(double[][] locations) { //OK
+        double wire=0.0; //length of wire
+        int locLen=locations.length;
+
+        boolean[]trackConnected=new boolean[locLen];
+        //keeps track of points already connected 
+        double[]shortestWire=new double[locLen];
+
+        //min wire length to get to each point 
+        for(int i=0;i<locLen;i++){//starting values 
+            shortestWire[i]=Double.MAX_VALUE;
+            //real value is in fact smaller 
+            trackConnected[i]=false;
+            //not connected yet 
+        }
+        shortestWire[0]=0;
+        //starting from first point 
+
+        //prims algo
+        //wire network building 
+        for(int i=0;i<locLen;i++){
+            int point=TrackUnconnectionPoints(shortestWire,trackConnected); //essentially this will give u the point that u gonna connect next
+            trackConnected[point]=true; //mark the index of that point as connected as to not revisit.
+            wire+=shortestWire[point];//adding to total 
+            CalculateWire(locations,trackConnected,point,shortestWire); 
+        }
+        return wire;
+    }
+
+    private static double DistCalc(double[] x,double[] y){
+        double dx=x[0]-y[0];
+        //euclidean distance 
+        double dy=x[1]-y[1];
+        return Math.sqrt(Math.pow(dx,2)+Math.pow(dy,2));
+    }
+
+    //finding unconnected point 
+    private static int TrackUnconnectionPoints(double[] a,boolean[] connected){
+        //done with smallest wire necessary 
+        double minVal=Double.MAX_VALUE;
+        int temp=-1;
+        for (int i=0;i<a.length;i++) {
+            if (!connected[i]&&a[i]< minVal) {
+                minVal=a[i];
+                temp=i;
+            }
+        } //stores cheapest point 
+        return temp;
+    }
+
+    //reupdate all the distances 
+    private static void CalculateWire(double[][] locations,boolean[] connected,int point,double[] shortestWire){
+        for(int i=0;i<locations.length;i++){
+            if(!connected[i]){
+                double dist=DistCalc(locations[point],locations[i]);
+                if(dist<shortestWire[i]){
+                    shortestWire[i]=dist;//update if shorter wire 
+                }
+            }
+        }
+    }
+}

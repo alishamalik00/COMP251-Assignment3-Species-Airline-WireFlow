@@ -1,0 +1,122 @@
+import java.util.*;
+import java.io.File;
+
+public class FordFulkerson {
+
+
+//finds path source to destination
+	public static ArrayList<Integer>pathDFS(Integer source,Integer destination,WGraph graph){
+		ArrayList<Integer>path=new ArrayList<Integer>();
+		HashSet<Integer>visited=new HashSet<>();
+        //keeps track of visited nodes 
+		HashMap<Integer,Integer>neighbourParent=new HashMap<>();
+        visited.add(source);
+        dfs(source,destination,graph,visited,neighbourParent);
+        if(!neighbourParent.containsKey(destination)){
+            return path;
+            //returns empty path is destination is not made to 
+        }
+        Integer tempDest=destination;
+        //backtracking
+        //aka from destination to source 
+        while(tempDest!=source){
+            path.add(0,tempDest);
+            tempDest=neighbourParent.get(tempDest);
+        }
+		path.add(0,source);//source node goes infront 
+		return path;
+
+
+	}
+
+
+//string as a result 
+public static String fordfulkerson(WGraph graph) {
+
+
+    int maxFlow=0;
+    Integer source=graph.getSource();
+    Integer destination=graph.getDestination();
+
+    //residual graph gets created 
+    WGraph residualGraph=new WGraph(graph);
+
+    while (true) {//continually find path 
+        ArrayList<Integer> path=pathDFS(source,destination,residualGraph);
+        if (path.isEmpty()) break;
+
+        int flow = Integer.MAX_VALUE;//finding bottlneck
+        //like in lecture 
+
+        for (int i=0;i<path.size()-1;i++) {
+            int temp1=path.get(i);
+            int temp2=path.get(i+1);
+            Edge e=residualGraph.getEdge(temp1,temp2);
+            flow =Math.min(flow,e.weight);
+        }
+
+        //have to change residual capacity
+    int index=0;
+
+    for (int i=0;i< path.size()-1;i++) {
+        int firstNode=path.get(i);
+        //check again to ensure optimized
+        int secondNode=path.get(i+1);
+        Edge fEdge=residualGraph.getEdge(firstNode,secondNode);
+        if (fEdge !=null) {
+        fEdge.weight -=flow;//subtracitng flow from the forward edge
+        //confer with TA 
+        }
+        //adjust the backward edge capacity or create it if missing
+        //with flow, create or update if already there for backward edge 
+        Edge bEdge=residualGraph.getEdge(secondNode, firstNode);
+        if (bEdge==null) {
+
+            Edge reverseEdge=new Edge(secondNode,firstNode,flow);
+            //this is to create new reverse edge
+            residualGraph.addEdge(reverseEdge);
+        } else {
+            bEdge.weight=bEdge.weight+flow;
+            //gotta update total flow too 
+        }
+    }
+
+
+        maxFlow+=flow;
+    }
+//updating original graph 
+    for (Edge e:graph.getEdges()) {
+        Edge rEdge=residualGraph.getEdge(e.nodes[0],e.nodes[1]);
+        int original=e.weight;//intitialising 
+        int remaining=0;
+
+        
+        if (rEdge!=null) { //comparing
+            remaining=rEdge.weight;
+        }
+        e.weight=original-remaining;//to get the real flow 
+    }
+    return maxFlow+"\n"+graph.toString();
+    //getting graph and the last max flow 
+}
+
+    public static void dfs(Integer initial,Integer destination,WGraph graph,HashSet<Integer> chekced,HashMap<Integer,Integer>neighhbourParent){
+        //recurisve DFS
+        //map to get to reachable 
+        if (initial==destination){
+            return;//got to the target 
+        }
+        for(Edge e:graph.getEdges()){
+            //only if there is still capacity in forward
+            if(e.nodes[0]==initial &&e.weight>0 && !(chekced.contains(e.nodes[1]))){
+                chekced.add(e.nodes[1]);
+                neighhbourParent.put(e.nodes[1],initial);
+                //store way to get there 
+                dfs(e.nodes[1], destination,graph,chekced,neighhbourParent);
+                //go on with the DFS 
+            }
+        }
+    }	
+
+}
+

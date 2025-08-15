@@ -1,0 +1,77 @@
+import java.util.*;
+
+public class A3Q2 {
+
+    public static String[] time_pass(String[][] itinerary,String[] cities) {
+        //map with all flights from cities 
+        Map<String, List<String>>flights=new HashMap<>();
+
+        for (int i=0; i<itinerary.length;i++) {
+            String from=itinerary[i][0];
+            String to=itinerary[i][1];
+
+            if (!flights.containsKey(from)) {
+                //if first time we see current city then add it 
+                flights.put(from,new ArrayList<>());
+                //add that destination 
+            }
+            flights.get(from).add(to); //add destination to list 
+        }
+
+        return DetermineStatus(cities,flights);
+        //checks whether cities can keep flying 
+    }
+
+    //checks if travel plan will succeed or nah 
+    private static String[] DetermineStatus(String[] checkCities,Map<String,List<String>>flights) {
+        String[] status=new String[checkCities.length];
+        int i=0;
+        Stack<String>activePath=new Stack<>();//stack for tracking DFS pattern 
+        Set<String>checked=new HashSet<>();//to avoid repetitions 
+
+        for(String city:checkCities){
+            //looping through each city 
+            if(detectCycle(city,flights,checked,activePath)){
+                //cycle = path will succeed
+                status[i]="succeed";
+            }
+            else{
+                status[i] = "failed"; //so no cycle 
+            }
+            i++;
+        }
+
+        return status;
+    }
+
+    //helper method for DFS
+    private static boolean detectCycle(String city,Map<String,List<String>> graph,Set<String> checked,Stack<String> route) {
+        if (route.contains(city)) {
+            //if city in stack we found cycle 
+            return true;
+        }
+
+        //did we already check tho 
+        if (checked.contains(city)) {
+            return false;
+        }
+
+        route.push(city); //added to DFS path 
+        //see which cities can be accessed 
+        List<String> neighbors=graph.get(city);
+        if (neighbors!=null&& !neighbors.isEmpty()) {
+            for(int i=0;i<neighbors.size();i++){ //checking da neighbors 
+                String nextDes=neighbors.get(i);
+                //recursionnnnnnnnnnnnnnnnnnnnnn
+                if (detectCycle(nextDes,graph,checked,route)) {
+                    return true;
+                }
+            }
+        }
+
+        route.pop(); //remove from path cuz checked already 
+        checked.add(city); //won't lead to cycle 
+        //ain't no cycle 
+        return false;
+    }
+}

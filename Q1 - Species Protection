@@ -1,0 +1,141 @@
+import java.util.*;
+
+public class A3Q1 {
+    public static int[] saving_frogs(String[][] board) {
+        int food=0; //work on grid 
+        int rows=board.length;
+        int cols=board[0].length;
+        food=GetFood(board,rows,cols);//for all the food spots 
+        //see again 
+        boolean[][] checked=new boolean[rows][cols];//tracking those visited 
+        List<int[]> startPoint=new ArrayList<>();
+        startPoint=GetEntrance(board,rows,cols);//check logic
+        //finding those valid 
+
+        ///other ways to do this 
+        int[] output=MoveFrog(board,startPoint,checked,food,rows,cols);
+        return output;
+    }
+
+    private static boolean validCell(int x,int y,int rows,int cols,String[][] board,boolean[][] checked) {
+        if(x >= 0&& y >=0 && x<rows && y< cols&& !checked[x][y]){
+            if(isFood(board[x][y])||isEmptySpace(board[x][y])){
+                return true;
+            }
+        }
+        //make sure optimized 
+        return false;
+    }
+
+    private static boolean isFood(String s){
+        if(s.equals(".")){
+            return true;
+        }
+        return false;
+    }
+
+    private static boolean isEmptySpace(String s){
+        if(s.equals(" ")){
+            return true;
+        }
+        return false;
+    }
+
+    //the same......
+    private static boolean checkEntrance(String s) {
+        if(s.length()>0&& s != null){
+            char sLetter=s.charAt(0);
+            if (sLetter >='A'&& sLetter<= 'W') {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean onEdge(int x, int y, int rows, int cols) {
+        if (x==0||y == 0||x==rows-1||y==cols-1){
+            return true;
+        }
+        return false; //not on border so not valid 
+    }
+
+    private static int GetFood(String[][] board,int rows,int cols){
+        int totalFood=0;
+        List<int[]> entrances=new ArrayList<>();//is necessary?
+        for (int i = 0;i<rows;i++) {
+            for(int j=0; j< cols;j++) {
+                String cell=board[i][j];
+                if (isFood(cell)) {
+                    totalFood++;//increase food 
+                }
+            }
+        }
+        return totalFood;
+    }
+
+    private static List<int[]> GetEntrance(String[][]board, int rows, int cols){
+        List<int[]>startPoint=new ArrayList<>();//frogs go into 
+        for (int i=0; i<rows;i++) {
+            for(int j=0;j< cols;j++) {
+                String cell=board[i][j];
+                if (checkEntrance(cell)&& onEdge(i,j,rows,cols)) {
+                    startPoint.add(new int[]{i,j});
+                    //added if valid 
+                }
+            }
+        }
+        return startPoint;
+        //sending entrances 
+    }
+
+    private static int[] MoveFrog(String[][] board,List<int[]>startPoint,boolean[][] checked,int totalFood,int row,int col) {
+        //how many frogs we need 
+        int feedFrogs=0;
+        //how much food we have eaten 
+        int foodCollected=0;
+        //here we define the directions 
+        final int[][] moves={{1,0},{-1,0},{0,1},{0,-1}};
+        for (int[] entrance:startPoint) {
+            int xEntrance=entrance[0];
+            //for each index
+            //experiment 
+            int yEntrance=entrance[1];
+            if (checked[xEntrance][yEntrance]){
+                continue;
+            }//means we checked already 
+            boolean foodFound=false;
+            Queue<int[]> explore=new LinkedList<>();
+            //doing BFS 
+            //CONFER W TA 
+            explore.add(entrance);
+            checked[xEntrance][yEntrance]=true;
+            //here we mark that it has been visited 
+
+            while (!explore.isEmpty()) {
+                int[] current = explore.poll();
+                int currX=current[0];
+                int currY=current[1];
+
+                for (int[] move:moves) {
+                    int newX=currX+move[0];
+                    int newY=currY+move[1];
+                    //make sure it's not blocked
+                    //aka CHECK IF WE CAN GO HERE 
+                    if (validCell(newX,newY,row,col,board,checked)) {
+                        checked[newX][newY]=true;
+                        explore.add(new int[]{newX,newY});
+                        if (isFood(board[newX][newY])) {
+                            foodCollected++; //increment to get food 
+                            foodFound=true; //found something 
+                        }
+                    }
+                }
+            }
+            if (foodFound) {
+                feedFrogs++; //counting frog that did work 
+            }
+        }
+        int noFood =totalFood-foodCollected;
+        return new int[]{feedFrogs,noFood};
+    }
+}
